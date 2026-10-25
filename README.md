@@ -4,7 +4,7 @@ A real-time digging race for 2 to 4 players, each on their own device (you can a
 Everyone starts at the top of a side-view mine. First to reach the ruby at the bottom wins.
 
 - **Dig** with ◀ ▼ ▶ on screen, or the arrow keys / A S D. Moving into dirt or stone digs it; moving into an open space walks.
-- **Dirt** breaks in 1 hit, **stone** in 3. **Bedrock** can't be dug: go around it.
+- **Dirt** breaks in 1 hit, **stone** in 3. **Bedrock** can't be dug: go around it. Some bedrock sits right over the ruby's column, so you can't just dig straight down the middle.
 - If there's nothing under you, you **fall**, including into other miners' tunnels.
 - The mine is new every race and mirrored left to right. Miners who start farther from the middle start deeper, in a shaft
   that's already dug, so everyone is the same number of digs from the ruby. Every start can always reach the ruby.
