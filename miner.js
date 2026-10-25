@@ -34,9 +34,10 @@
     for (let y = SURFACE + 2; y < H - 4; y++) for (let x = 1; x <= CX; x++) {
       if (r() < 0.05 + 0.18 * (y / H)) { set(x, y, STONE); if (r() < 0.6) set(x + (r() < 0.5 ? 1 : -1), y, STONE); if (r() < 0.4) set(x, y + 1, STONE); }
     }
-    // Bedrock bars to dig around: short and spaced out, so there's always a way past.
+    // Bedrock bars to dig around: short and spaced out, so there's always a way past. About 3 in 10 reach the middle
+    // column, where they join their mirror image into one wide bar right over the ruby's column.
     for (let y = SURFACE + 4; y < H - 6; y += 3 + Math.floor(r() * 3)) {
-      const len = 2 + Math.floor(r() * 3), x0 = 2 + Math.floor(r() * (CX - len - 1));
+      const len = 2 + Math.floor(r() * 3), x0 = r() < 0.3 ? CX - len + 1 : 2 + Math.floor(r() * (CX - len - 1));
       for (let x = x0; x < x0 + len; x++) set(x, y, BEDROCK);
     }
     // A stone shell around the ruby.
