@@ -274,6 +274,8 @@
     T = r.width / W;
   }
   window.addEventListener('resize', fit);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', () => setTimeout(fit, 300));
 
   // Little specks so dirt and stone don't look flat; the same specks every frame for each cell.
   const speck = (x, y, k) => ((x * 73856093) ^ (y * 19349663) ^ (k * 83492791)) >>> 0;
@@ -410,6 +412,8 @@
       clank() { tone(220, 0.12, 'square', 0.07, 0.7); },
       beep(go) { tone(go ? 880 : 440, go ? 0.35 : 0.15, 'square', 0.08); },
       win() { [523, 659, 784, 1047].forEach((f, k) => setTimeout(() => tone(f, 0.25, 'square', 0.09), k * 120)); },
+      // Phones only let sound start during a tap, so wake it up on the first touch anywhere.
+      unlock() { ctx(); },
       get muted() { return muted; },
       toggle() { muted = !muted; store.set('minermania-mute', muted ? '1' : '0'); },
     };
@@ -457,7 +461,12 @@
   window.addEventListener('blur', () => held.clear());
   for (const b of document.querySelectorAll('.pad button')) {
     const d = b.dataset.dir;
-    b.addEventListener('pointerdown', e => { e.preventDefault(); b.setPointerCapture(e.pointerId); held.add(d); b.classList.add('on'); });
+    b.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      held.add(d); b.classList.add('on');
+      // Keep getting this finger's events even if it slides off the button. Not every browser allows it, and that's fine.
+      try { b.setPointerCapture(e.pointerId); } catch {}
+    });
     for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(ev, () => { held.delete(d); b.classList.remove('on'); });
     b.addEventListener('contextmenu', e => e.preventDefault());
   }
@@ -478,6 +487,7 @@
   $('mute').onclick = () => { sfx.toggle(); drawMute(); };
   drawMute();
   window.addEventListener('pagehide', leaveRoom);
+  for (const ev of ['pointerdown', 'touchstart', 'keydown']) document.addEventListener(ev, () => sfx.unlock(), { capture: true, passive: true });
 
   if (!db) $('menu-error').textContent = NO_SERVER;
   show('menu');

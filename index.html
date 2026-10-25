@@ -48,14 +48,22 @@
   .tile { width: 22px; height: 22px; border-radius: 4px; }
 
   /* The race: the mine fills the screen, with the dig buttons at the bottom. */
-  #game { position: fixed; inset: 0; max-width: none; padding: 0; gap: 0; justify-content: flex-start; }
+  /* Exactly the visible screen. Phones' 100vh includes the space behind the browser's address bar, so it can't be used here. */
+  #game { position: fixed; inset: 0; height: 100%; height: 100dvh; min-height: 0; max-width: none; padding: 0; gap: 0; justify-content: flex-start;
+    overscroll-behavior: none; touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
   .top { display: flex; align-items: center; gap: 10px; padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; }
   .top .spacer { flex: 1; }
-  .mine-wrap { flex: 1; min-height: 0; display: flex; justify-content: center; }
-  canvas { display: block; width: min(100%, 560px); height: 100%; touch-action: none; }
-  .pad { display: flex; gap: 10px; justify-content: center; padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  /* The canvas is pinned inside its box, so its size never depends on how many pixels it's drawn at
+     (otherwise Safari grows it a little every time the game redraws). */
+  .mine-wrap { flex: 1; min-height: 0; position: relative; }
+  canvas { position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); display: block;
+    width: min(100%, 560px); height: 100%; touch-action: none; }
+  /* The dig buttons are pinned to the bottom of the screen, so they're always there whatever the browser does with its bars. */
+  .pad { position: fixed; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; gap: 10px; justify-content: center;
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, rgba(27,22,64,.9) 30%); }
+  .mine-wrap { margin-bottom: calc(94px + env(safe-area-inset-bottom, 0px)); }
   .pad button { width: min(28vw, 120px); height: 72px; border-radius: 20px; border: 2px solid var(--line); background: var(--card);
-    font-size: 34px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+    font-size: 34px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
   .pad button.on { background: var(--accent); color: #2b1d00; transform: scale(.95); }
   #count { position: fixed; left: 0; right: 0; top: 38%; text-align: center; font-size: clamp(80px, 26vw, 160px); font-weight: 700;
     color: #fff; text-shadow: 0 6px 0 rgba(0,0,0,.4); pointer-events: none; }
@@ -132,6 +140,6 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="miner.js?v=1"></script>
+<script src="miner.js?v=2"></script>
 </body>
 </html>
