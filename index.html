@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Miner Mania</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg1: #1b1640; --bg2: #3a2a6b;
+    --ink: #fff7ec; --muted: #b9b0d8;
+    --card: rgba(255,255,255,0.08); --line: rgba(255,255,255,0.14);
+    --accent: #ffb84d; --ruby: #e0115f;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { background: var(--bg1); }
+  body { margin: 0; color: var(--ink); font-family: 'Fredoka', ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
+    background: radial-gradient(120% 60% at 50% 0%, var(--bg2), var(--bg1)) no-repeat, var(--bg1); min-height: 100vh; }
+  button, input { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+  .screen { max-width: 520px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; gap: 14px; justify-content: center;
+    padding: calc(24px + env(safe-area-inset-top, 0px)) 16px calc(20px + env(safe-area-inset-bottom, 0px)); }
+  h1 { margin: 0; font-size: clamp(46px, 14vw, 68px); line-height: .92; text-align: center; letter-spacing: 1px; }
+  h1 small { display: block; font-size: .3em; color: var(--muted); letter-spacing: 3px; margin-top: 8px; font-weight: 500; }
+  h2 { margin: 0; font-size: 22px; }
+  p { margin: 0; line-height: 1.4; }
+  .muted { color: var(--muted); }
+  .card { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .btn { border-radius: 16px; padding: 12px 18px; font-size: 18px; font-weight: 600; cursor: pointer;
+    background: var(--card); border: 2px solid var(--line); transition: transform .08s; }
+  .btn:active:not(:disabled) { transform: scale(.96); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn.primary { background: var(--accent); color: #2b1d00; border-color: transparent; box-shadow: 0 5px 0 #c17c18; }
+  .btn.primary:active:not(:disabled) { box-shadow: 0 2px 0 #c17c18; transform: translateY(3px); }
+  .btn.small { padding: 6px 12px; font-size: 15px; border-radius: 12px; }
+  .field { width: 100%; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--card); font-size: 18px; outline: none; }
+  .field:focus { border-color: var(--accent); }
+  .code-in { width: 7em; text-transform: uppercase; letter-spacing: 5px; text-align: center; font-weight: 700; }
+  .error { color: #ff8a8a; min-height: 1.4em; }
+  ul.plain { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  ul.plain li { display: flex; gap: 8px; align-items: center; }
+  .sw { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(0,0,0,.4); flex: none; }
+  .pname { font-weight: 600; }
+  .code { font-size: 42px; font-weight: 700; letter-spacing: 8px; text-align: center; }
+  .legend { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; align-items: center; }
+  .tile { width: 22px; height: 22px; border-radius: 4px; }
+
+  /* The race: the mine fills the screen, with the dig buttons at the bottom. */
+  #game { position: fixed; inset: 0; max-width: none; padding: 0; gap: 0; justify-content: flex-start; }
+  .top { display: flex; align-items: center; gap: 10px; padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; }
+  .top .spacer { flex: 1; }
+  .mine-wrap { flex: 1; min-height: 0; display: flex; justify-content: center; }
+  canvas { display: block; width: min(100%, 560px); height: 100%; touch-action: none; }
+  .pad { display: flex; gap: 10px; justify-content: center; padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .pad button { width: min(28vw, 120px); height: 72px; border-radius: 20px; border: 2px solid var(--line); background: var(--card);
+    font-size: 34px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .pad button.on { background: var(--accent); color: #2b1d00; transform: scale(.95); }
+  #count { position: fixed; left: 0; right: 0; top: 38%; text-align: center; font-size: clamp(80px, 26vw, 160px); font-weight: 700;
+    color: #fff; text-shadow: 0 6px 0 rgba(0,0,0,.4); pointer-events: none; }
+  #over { position: fixed; inset: 0; background: rgba(10,6,30,.65); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  #over .card { background: var(--bg2); max-width: 420px; width: 100%; }
+  #winner { font-size: 28px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  #winner .sw { width: 24px; height: 24px; }
+</style>
+</head>
+<body>
+
+<section class="screen" id="menu">
+  <h1>⛏️ Miner Mania<small>RACE TO THE RUBY</small></h1>
+  <div class="card">
+    <p>2 to 4 miners start at the top of the mine. Dig down, around the rocks, and be the first to reach the <b style="color:var(--ruby)">ruby</b> at the bottom!</p>
+    <div class="legend">
+      <span class="tile" style="background:#7a4f2a"></span><span>Dirt: 1 hit</span>
+      <span class="tile" style="background:#6f747a"></span><span>Stone: 3 hits</span>
+      <span class="tile" style="background:#26262e;border:1px solid #444"></span><span>Bedrock: can't dig it, go around</span>
+    </div>
+    <p class="muted">Dig with ◀ ▼ ▶ (or the arrow keys). If there's nothing under you, you fall, even into other miners' tunnels.</p>
+  </div>
+  <div class="card">
+    <input class="field" id="name" maxlength="14" placeholder="Your name" autocomplete="nickname">
+    <button class="btn primary" id="create" type="button">Create a room</button>
+    <div class="row"><input class="field code-in" id="join-code" maxlength="4" placeholder="CODE" autocomplete="off" aria-label="Room code"><button class="btn" id="join" type="button">Join</button></div>
+    <p class="error" id="menu-error"></p>
+  </div>
+</section>
+
+<section class="screen" id="lobby" hidden>
+  <h1>⛏️ Miner Mania</h1>
+  <div class="card">
+    <p class="muted" style="text-align:center">Room code: friends type this on their own device to join (up to 4).</p>
+    <div class="code" id="code"></div>
+  </div>
+  <div class="card">
+    <h2>Miners</h2>
+    <ul class="plain" id="lobby-players"></ul>
+  </div>
+  <div class="row">
+    <button class="btn primary" id="start" type="button">Start</button>
+    <span class="muted" id="lobby-wait">Waiting for the host to start…</span>
+    <button class="btn" id="lobby-leave" type="button">Leave</button>
+  </div>
+</section>
+
+<section class="screen" id="game" hidden>
+  <div class="top">
+    <b>⛏️ Miner Mania</b>
+    <span class="spacer"></span>
+    <button class="btn small" id="mute" type="button" aria-label="Sound">🔊</button>
+    <button class="btn small" id="game-leave" type="button">Leave</button>
+  </div>
+  <div class="mine-wrap"><canvas id="canvas" aria-label="The mine"></canvas></div>
+  <div class="pad">
+    <button type="button" data-dir="left" aria-label="Dig left">◀</button>
+    <button type="button" data-dir="down" aria-label="Dig down">▼</button>
+    <button type="button" data-dir="right" aria-label="Dig right">▶</button>
+  </div>
+</section>
+
+<div id="count" hidden></div>
+<div id="over" hidden>
+  <div class="card">
+    <h2 id="winner"></h2>
+    <div class="row">
+      <button class="btn primary" id="again" type="button">Race again</button>
+      <span class="muted" id="again-wait">Waiting for the host…</span>
+      <button class="btn" id="over-leave" type="button">Leave</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="miner.js?v=1"></script>
+</body>
+</html>
