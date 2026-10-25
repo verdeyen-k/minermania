@@ -195,12 +195,12 @@
     if (!meta || meta.host !== myId) return;
     room.ref.child('live').remove();
     room.ref.child('meta').update({ phase: 'play', seed: Math.floor(Math.random() * 2 ** 31), order: playerList(meta).map(p => p.id),
-      startAt: now() + 3600, winner: null });
+      startAt: now() + 3600, winner: null, winTime: null });
   }
   function playAgain() {
     if (!room || !room.meta || room.meta.host !== myId) return;
     room.ref.child('live').remove();
-    room.ref.child('meta').update({ phase: 'lobby', seed: null, order: null, startAt: null, winner: null });
+    room.ref.child('meta').update({ phase: 'lobby', seed: null, order: null, startAt: null, winner: null, winTime: null });
   }
 
   // ── The race ─────────────────────────────────────────────────────────────
@@ -241,7 +241,11 @@
     if (game.won) return;
     game.won = true;
     sfx.win();
-    room.ref.child('meta/winner').transaction(cur => cur || myId);
+    const time = now() - room.meta.startAt;
+    // Whoever's claim lands first is the winner, and their time is the winning time.
+    room.ref.child('meta/winner').transaction(cur => cur || myId).then(res => {
+      if (res.committed && res.snapshot.val() === myId) room.ref.child('meta/winTime').set(time);
+    });
     room.ref.child('meta/phase').set('over');
   }
 
@@ -372,6 +376,11 @@
     for (const [id, p] of Object.entries(room.pos || {})) if (id !== myId && p && m.players && m.players[id]) dot(p.y, COLORS[m.players[id].slot], false);
     dot(game.me.y, COLORS[mySlot], true);
 
+    // The race clock: counts up from DIG!, and stops at the winning time.
+    const clock = m.phase === 'over' ? (m.winTime ?? Math.max(0, now() - m.startAt)) : Math.max(0, now() - (m.startAt || now()));
+    const clockText = fmtTime(clock);
+    if ($('timer').textContent !== clockText) $('timer').textContent = clockText;
+
     // Countdown.
     const left = (m.startAt || 0) - now();
     $('count').hidden = !(m.phase === 'play' && left > -700);
@@ -381,6 +390,9 @@
     }
   }
   requestAnimationFrame(frame);
+
+  // 0:42.3
+  const fmtTime = ms => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, '0')}.${Math.floor(ms / 100) % 10}`;
 
   // ── Sounds ───────────────────────────────────────────────────────────────
   // Made on the fly with Web Audio, so there are no sound files. Phones only allow sound after a tap.
@@ -450,6 +462,7 @@
       const w = meta.winner && meta.players[meta.winner] ? meta.players[meta.winner] : null;
       const wName = meta.winner === myId ? 'You' : w ? w.name : 'Someone';
       $('winner').innerHTML = `${w ? swatch(w.slot) : ''} ${esc(wName)} found the ruby! 💎`;
+      $('win-time').textContent = meta.winTime != null ? `in ${fmtTime(meta.winTime)}` : '';
       $('again').hidden = !host;
       $('again-wait').hidden = host;
     }

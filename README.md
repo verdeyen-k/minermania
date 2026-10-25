@@ -9,6 +9,7 @@ Everyone starts at the top of a side-view mine. First to reach the ruby at the b
 - The mine is new every race and mirrored left to right. Miners who start farther from the middle start deeper, in a shaft
   that's already dug, so everyone is the same number of digs from the ruby. Every start can always reach the ruby.
 - The depth meter on the right shows how close everyone is.
+- The race clock at the top counts up from DIG! and stops when someone reaches the ruby; the results show the winning time.
 
 ## Files
 

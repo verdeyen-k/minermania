@@ -69,6 +69,9 @@
     color: #fff; text-shadow: 0 6px 0 rgba(0,0,0,.4); pointer-events: none; }
   #over { position: fixed; inset: 0; background: rgba(10,6,30,.65); display: flex; align-items: center; justify-content: center; padding: 16px; }
   #over .card { background: var(--bg2); max-width: 420px; width: 100%; }
+  #timer { font-size: 22px; font-variant-numeric: tabular-nums; background: rgba(0,0,0,.3); padding: 2px 12px; border-radius: 12px; }
+  @media (max-width: 420px) { .top .title { display: none; } }
+  #win-time { font-size: 22px; color: var(--accent); font-variant-numeric: tabular-nums; }
   #winner { font-size: 28px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   #winner .sw { width: 24px; height: 24px; }
 </style>
@@ -113,7 +116,9 @@
 
 <section class="screen" id="game" hidden>
   <div class="top">
-    <b>⛏️ Miner Mania</b>
+    <b class="title">⛏️ Miner Mania</b>
+    <span class="spacer"></span>
+    <b id="timer" aria-label="Race time">0:00.0</b>
     <span class="spacer"></span>
     <button class="btn small" id="mute" type="button" aria-label="Sound">🔊</button>
     <button class="btn small" id="game-leave" type="button">Leave</button>
@@ -130,6 +135,7 @@
 <div id="over" hidden>
   <div class="card">
     <h2 id="winner"></h2>
+    <p id="win-time"></p>
     <div class="row">
       <button class="btn primary" id="again" type="button">Race again</button>
       <span class="muted" id="again-wait">Waiting for the host…</span>
@@ -140,6 +146,6 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="miner.js?v=3"></script>
+<script src="miner.js?v=4"></script>
 </body>
 </html>
